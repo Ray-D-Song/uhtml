@@ -19,7 +19,8 @@
     "clean": "rm -rf coverage ./*.js cjs/**/*.js cjs/*.js types",
     "check:types": "npx attw $(npm pack) --profile esm-only",
     "build:types": "rm -rf types && npx tsc -p tsconfig.json && node rollup/ts.fix.js",
-    "publint": "npx publint ."
+    "publint": "npx publint .",
+    "vitest": "vitest"
   },
   "keywords": [
     "micro",
@@ -38,6 +39,7 @@
     "ascjs": "^6.0.3",
     "c8": "^10.1.2",
     "fast-glob": "^3.3.2",
+    "jsdom": "^26.1.0",
     "publint": "~0.3.12",
     "rollup": "^4.27.4",
     "terser": "^5.36.0",
