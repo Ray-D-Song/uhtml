@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UHTML Sparse Attributes + Reactive Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .demo { margin: 20px 0; padding: 15px; border: 2px solid #007bff; border-radius: 5px; }
+        .controls { margin: 10px 0; }
+        button { margin: 5px; padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { padding: 10px; background: #f8f9fa; border-radius: 3px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>UHTML Sparse Attributes + Reactive Test</h1>
+    <p>Testing sparse attributes with reactive signals.</p>
+    
+    <div class="demo">
+        <h3>Demo 1: Reactive Sparse Class Names</h3>
+        <div class="controls">
+            <button id="toggle-prefix">Toggle Prefix</button>
+            <button id="toggle-suffix">Toggle Suffix</button>
+        </div>
+        <div id="demo1-container"></div>
+        <div class="result" id="demo1-result"></div>
+    </div>
+
+    <div class="demo">
+        <h3>Demo 2: Dynamic CSS Properties</h3>
+        <div class="controls">
+            <button id="change-color">Change Color</button>
+            <button id="change-size">Change Size</button>
+        </div>
+        <div id="demo2-container"></div>
+        <div class="result" id="demo2-result"></div>
+    </div>
+
+    <div class="demo">
+        <h3>Demo 3: Complex URL Building</h3>
+        <div class="controls">
+            <button id="change-protocol">Toggle Protocol</button>
+            <button id="change-domain">Change Domain</button>
+            <button id="change-path">Change Path</button>
+        </div>
+        <div id="demo3-container"></div>
+        <div class="result" id="demo3-result"></div>
+    </div>
+
+    <script type="module">
+        import { attach } from './esm/reactive.js';
+        import { html } from './esm/index.js';
+        import { signal } from '@webreflection/signal';
+
+        const render = attach(signal.effect);
+
+        // Demo 1: Reactive Sparse Class Names
+        const prefix = signal('btn');
+        const suffix = signal('primary');
+
+        render(document.getElementById('demo1-container'), () => html`
+            <button class="${prefix.value}-${suffix.value}">
+                Dynamic Button (${prefix.value}-${suffix.value})
+            </button>
+        `);
+
+        document.getElementById('toggle-prefix').onclick = () => {
+            prefix.value = prefix.value === 'btn' ? 'button' : 'btn';
+            document.getElementById('demo1-result').textContent = 
+                `Current class: ${prefix.value}-${suffix.value}`;
+        };
+
+        document.getElementById('toggle-suffix').onclick = () => {
+            suffix.value = suffix.value === 'primary' ? 'secondary' : 'primary';
+            document.getElementById('demo1-result').textContent = 
+                `Current class: ${prefix.value}-${suffix.value}`;
+        };
+
+        // Demo 2: Dynamic CSS Properties  
+        const color = signal('blue');
+        const size = signal('16');
+
+        render(document.getElementById('demo2-container'), () => html`
+            <div style="color: ${color.value}; font-size: ${size.value}px; padding: 10px; border: 1px solid ${color.value};">
+                This text is ${color.value} and ${size.value}px
+            </div>
+        `);
+
+        const colors = ['blue', 'red', 'green', 'purple', 'orange'];
+        let colorIndex = 0;
+        document.getElementById('change-color').onclick = () => {
+            colorIndex = (colorIndex + 1) % colors.length;
+            color.value = colors[colorIndex];
+            document.getElementById('demo2-result').textContent = 
+                `Current style: color=${color.value}, size=${size.value}px`;
+        };
+
+        const sizes = ['16', '20', '24', '18', '12'];
+        let sizeIndex = 0;
+        document.getElementById('change-size').onclick = () => {
+            sizeIndex = (sizeIndex + 1) % sizes.length;
+            size.value = sizes[sizeIndex];
+            document.getElementById('demo2-result').textContent = 
+                `Current style: color=${color.value}, size=${size.value}px`;
+        };
+
+        // Demo 3: Complex URL Building
+        const protocol = signal('https');
+        const domain = signal('example.com');
+        const path = signal('api/v1');
+
+        render(document.getElementById('demo3-container'), () => html`
+            <div>
+                <p>Generated URL: <code>${protocol.value}://${domain.value}/${path.value}/users</code></p>
+                <a href="${protocol.value}://${domain.value}/${path.value}/users" target="_blank">
+                    Visit: ${protocol.value}://${domain.value}/${path.value}/users
+                </a>
+            </div>
+        `);
+
+        document.getElementById('change-protocol').onclick = () => {
+            protocol.value = protocol.value === 'https' ? 'http' : 'https';
+            document.getElementById('demo3-result').textContent = 
+                `Current URL: ${protocol.value}://${domain.value}/${path.value}/users`;
+        };
+
+        const domains = ['example.com', 'test.org', 'demo.net'];
+        let domainIndex = 0;
+        document.getElementById('change-domain').onclick = () => {
+            domainIndex = (domainIndex + 1) % domains.length;
+            domain.value = domains[domainIndex];
+            document.getElementById('demo3-result').textContent = 
+                `Current URL: ${protocol.value}://${domain.value}/${path.value}/users`;
+        };
+
+        const paths = ['api/v1', 'api/v2', 'v1/api', 'rest'];
+        let pathIndex = 0;
+        document.getElementById('change-path').onclick = () => {
+            pathIndex = (pathIndex + 1) % paths.length;
+            path.value = paths[pathIndex];
+            document.getElementById('demo3-result').textContent = 
+                `Current URL: ${protocol.value}://${domain.value}/${path.value}/users`;
+        };
+
+        // Initialize result displays
+        document.getElementById('demo1-result').textContent = `Current class: ${prefix.value}-${suffix.value}`;
+        document.getElementById('demo2-result').textContent = `Current style: color=${color.value}, size=${size.value}px`;
+        document.getElementById('demo3-result').textContent = `Current URL: ${protocol.value}://${domain.value}/${path.value}/users`;
+
+        console.log('Reactive sparse attributes demo initialized!');
+    </script>
+</body>
+</html> 

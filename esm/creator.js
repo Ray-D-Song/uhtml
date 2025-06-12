@@ -19,13 +19,15 @@ export default parse => (
     if (entries !== empty) {
       details = [];
       for (let current, prev, i = 0; i < entries.length; i++) {
-        const { a: path, b: update, c: name } = entries[i];
+        const { a: path, b: update, c: name, d: sparse, e: sparseCount } = entries[i];
         const node = path === prev ? current : (current = find(root, (prev = path)));
         details[i] = detail(
           update,
           node,
           name,
-          update === array ? [] : (update === hole ? cache() : null)
+          update === array ? [] : (update === hole ? cache() : null),
+          sparse || false,
+          sparseCount || 1
         );
       }
     }

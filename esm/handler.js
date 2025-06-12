@@ -231,9 +231,29 @@ export const attr = new Map([
  * @param {HTMLElement | SVGElement} element
  * @param {string} name
  * @param {boolean} svg
+ * @param {string[] | null} sparse - Array of string parts for sparse attributes
  * @returns
  */
-export const attribute = (element, name, svg) => {
+export const attribute = (element, name, svg, sparse = null) => {
+  // Handle sparse attributes (multiple interpolations in one attribute)
+  if (sparse) {
+    return (element, values, name, oldValues) => {
+      let value = sparse[0];
+      for (let i = 1; i < sparse.length; i++) {
+        value += (values[i - 1] ?? '') + sparse[i];
+      }
+      
+      if (value == null) {
+        removeAttribute(element, name);
+      } else {
+        setAttribute(element, name, value);
+      }
+      
+      return values; // Return the values array for comparison
+    };
+  }
+
+  // Regular single interpolation attribute handling
   switch (name[0]) {
     case '.': return dot;
     case '?': return toggle;

@@ -19,12 +19,16 @@ export const bc = (b, c) => ({ b, c });
  * @property {Node} t the target comment node or element
  * @property {string | null | Node} n the attribute name, if any, or `null`
  * @property {Cache | ArrayValue[] | null} c the cache value for this detail
+ * @property {boolean} sparse whether this is a sparse attribute consuming multiple values
+ * @property {number} sparseCount how many values this sparse attribute consumes
  */
 
 /**
  * @returns {Detail}
  */
-export const detail = (u, t, n, c) => ({ v: empty, u, t, n, c });
+export const detail = (u, t, n, c, sparse = false, sparseCount = 1) => ({ 
+  v: empty, u, t, n, c, sparse, sparseCount 
+});
 
 /**
  * @typedef {Object} Entry

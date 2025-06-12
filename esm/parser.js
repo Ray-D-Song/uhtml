@@ -33,6 +33,9 @@ const createPath = node => {
 
 const textNode = () => document.createTextNode('');
 
+// Extended abc function for sparse attributes
+const abcde = (a, b, c, d = false, e = 1) => ({ a, b, c, d, e });
+
 /**
  * @param {TemplateStringsArray} template
  * @param {boolean} xml
@@ -61,14 +64,55 @@ const resolve = (template, values, xml) => {
       }
       else {
         let path;
-        // these are attributes
+        // these are attributes - check for sparse attributes
+        const attributesToRemove = [];
         while (node.hasAttribute(search)) {
           if (!path) path = createPath(node);
           const name = node.getAttribute(search);
-          entries.push(abc(path, attribute(node, name, xml), name));
-          removeAttribute(node, search);
-          search = `${prefix}${i++}`;
+          
+          // Check for sparse attributes by looking at the actual attribute value
+          const actualAttr = node.getAttributeNode(name);
+          let sparse = null;
+          
+          if (actualAttr && actualAttr.value.includes(prefix)) {
+            // Split the attribute value to find all interpolations
+            const parts = actualAttr.value.split(new RegExp(`${prefix}\\d+`));
+            if (parts.length > 2) {
+              // This is a sparse attribute with multiple interpolations
+              sparse = parts;
+              
+              // Mark all related attribute nodes for removal
+              const interpolationCount = parts.length - 1;
+              attributesToRemove.push(search);
+              
+              // Add subsequent interpolation attributes to removal list
+              for (let j = 1; j < interpolationCount; j++) {
+                const nextSearch = `${prefix}${i + j}`;
+                if (node.hasAttribute(nextSearch)) {
+                  attributesToRemove.push(nextSearch);
+                }
+              }
+              
+              entries.push(abcde(path, attribute(node, name, xml, sparse), name, true, interpolationCount));
+              
+              // Advance i by the number of interpolations consumed
+              i += interpolationCount;
+              search = `${prefix}${i}`;
+              break; // Exit the while loop for this node
+            }
+          }
+          
+          // Regular single interpolation attribute
+          if (!sparse) {
+            entries.push(abc(path, attribute(node, name, xml), name));
+            attributesToRemove.push(search);
+            search = `${prefix}${i++}`;
+          }
         }
+        
+        // Remove all marked attributes
+        attributesToRemove.forEach(attr => removeAttribute(node, attr));
+        
         // these are special text-only nodes
         if (
           !xml &&

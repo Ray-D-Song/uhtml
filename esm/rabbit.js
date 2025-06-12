@@ -18,11 +18,14 @@ const unroll = (info, { s, t, v }) => {
     info.b = b;
     info.c = c;
   }
+  
+  let valueIndex = 0;
   for (let { c } = info, i = 0; i < c.length; i++) {
-    const value = v[i];
     const detail = c[i];
+    
     switch (detail.u) {
       case array:
+        const value = v[valueIndex++];
         detail.v = array(
           detail.t,
           unrollValues(detail.c, value),
@@ -30,16 +33,34 @@ const unroll = (info, { s, t, v }) => {
         );
         break;
       case hole:
-        const current = value instanceof Hole ?
-          unroll(detail.c || (detail.c = cache()), value) :
-          (detail.c = null, value)
+        const holeValue = v[valueIndex++];
+        const current = holeValue instanceof Hole ?
+          unroll(detail.c || (detail.c = cache()), holeValue) :
+          (detail.c = null, holeValue)
         ;
         if (current !== detail.v)
           detail.v = hole(detail, current);
         break;
       default:
-        if (value !== detail.v)
-          detail.v = detail.u(detail.t, value, detail.n, detail.v);
+        // Check if this is a sparse attribute
+        if (detail.sparse) {
+          // Sparse attribute - collect multiple values
+          const sparseValues = [];
+          for (let j = 0; j < detail.sparseCount; j++) {
+            sparseValues.push(v[valueIndex++]);
+          }
+          
+          // Compare with previous values
+          const hasChanged = !detail.v || sparseValues.some((val, idx) => val !== detail.v[idx]);
+          if (hasChanged) {
+            detail.v = detail.u(detail.t, sparseValues, detail.n, detail.v);
+          }
+        } else {
+          // Regular single value attribute
+          const singleValue = v[valueIndex++];
+          if (singleValue !== detail.v)
+            detail.v = detail.u(detail.t, singleValue, detail.n, detail.v);
+        }
         break;
     }
   }
