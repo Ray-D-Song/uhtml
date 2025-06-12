@@ -30,7 +30,6 @@
   "license": "MIT",
   "devDependencies": {
     "@arethetypeswrong/cli": "~0.17.4",
-    "publint": "~0.3.12",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/estree": "^1.0.6",
@@ -39,9 +38,12 @@
     "ascjs": "^6.0.3",
     "c8": "^10.1.2",
     "fast-glob": "^3.3.2",
+    "publint": "~0.3.12",
     "rollup": "^4.27.4",
     "terser": "^5.36.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.3"
   },
   "module": "./esm/index.js",
   "type": "module",
